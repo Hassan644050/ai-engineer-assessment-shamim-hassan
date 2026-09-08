@@ -9,6 +9,7 @@ from app.services.router import (
     extract_superhero_name,
 )
 from app.services.dataset import search_dataset
+from app.exceptions.exceptions import LLMException
 import time
 
 router = APIRouter()
@@ -103,15 +104,14 @@ def ask(request: AskRequest):
             f"{time.perf_counter() - llm_start:.2f}s"
         )
 
-    except Exception as exc:
-
+    except LLMException as exc:
         print(f"LLM error: {exc}")
 
         return AskResponse(
             question=request.question,
             answer=(
-                "The AI service is temporarily "
-                "unavailable. Please try again shortly."
+                "The AI service is temporarily unavailable. "
+                "Please try again shortly."
             ),
             sources=sources,
         )
