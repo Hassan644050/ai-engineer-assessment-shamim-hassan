@@ -12,6 +12,19 @@ SUPERHERO_NAMES = [
     "wonder woman",
 ]
 
+DATASET_KEYWORDS = [
+    "fastapi",
+    "pydantic",
+    "uvicorn",
+    "python",
+    "rest api",
+    "docker",
+    "etl",
+    "data engineering",
+    "snowflake",
+    "airflow",
+]
+
 def is_superhero_question(question: str) -> bool:
     question_lower = question.lower()
 
@@ -28,3 +41,21 @@ def extract_superhero_name(question: str) -> str | None:
             return superhero
 
     return None
+
+def determine_source(question: str) -> QuestionSource:
+    superhero = is_superhero_question(question)
+
+    question_lower = question.lower()
+
+    dataset = any(
+        keyword in question_lower
+        for keyword in DATASET_KEYWORDS
+    )
+
+    if superhero and dataset:
+        return QuestionSource.BOTH
+
+    if superhero:
+        return QuestionSource.SUPERHERO
+
+    return QuestionSource.DATASET

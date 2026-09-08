@@ -1,5 +1,6 @@
 import httpx
 from app.config import get_env_meta_info
+from app.exceptions.exceptions import SuperheroAPIException
 
 
 def search_superhero(name: str):
@@ -10,13 +11,37 @@ def search_superhero(name: str):
         f"{env_meta_info.super_hero_api_token}/search/{name}"
     )
 
-    response = httpx.get(url, timeout=10,follow_redirects=True)
-    response.raise_for_status()
-    return response.json()
+    try:
+        response = httpx.get(url, timeout=10,follow_redirects=True)
+        response.raise_for_status()
+        return response.json()
+    except httpx.TimeoutException as exc:
+        raise SuperheroAPIException(
+            "Superhero API request timed out."
+        ) from exc
+    
+    except httpx.HTTPStatusError as exc:
+        raise SuperheroAPIException(
+            "Superhero API returned an HTTP error."
+        ) from exc
+    
+    except ValueError as exc:
+        raise SuperheroAPIException(
+            "Superhero API returned invalid JSON."
+        ) from exc
+    
+    except httpx.RequestError as exc:
+        raise SuperheroAPIException(
+            "Unable to connect to Superhero API."
+        ) from exc
+    
 
 def format_superhero_response(data: dict) -> str:
     if data.get("response") != "success":
-        return "I couldn't find that superhero."
+        return data.get(
+            "error",
+            "I couldn't retrieve superhero information."
+        )
 
     results = data.get("results", [])
 
